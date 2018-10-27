@@ -1,0 +1,4 @@
+numpy
+tensorflow
+Keras
+keras-multi-head==0.7.0
