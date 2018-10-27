@@ -13,7 +13,9 @@ setup(
     install_requires=[
         'numpy',
         'keras',
-        'keras-multi-head==0.7.0',
+        'keras-multi-head==0.8.0',
+        'keras-layer-normalization=0.2.0',
+        'keras-position-wise-feed-forward=0.1.0',
     ],
     classifiers=(
         "Programming Language :: Python :: 2.7",
