@@ -1,5 +1,10 @@
 from setuptools import setup, find_packages
 
+
+def get_requirements():
+    with open('requirements.txt', 'r') as reader:
+        return list(map(lambda x: x.strip(), reader.readlines()))
+
 setup(
     name='keras-transformer',
     version='0.1.0',
@@ -10,13 +15,7 @@ setup(
     author_email='CyberZHG@gmail.com',
     description='Transformer implemented in Keras',
     long_description=open('README.rst', 'r').read(),
-    install_requires=[
-        'numpy',
-        'keras',
-        'keras-multi-head==0.8.0',
-        'keras-layer-normalization=0.2.0',
-        'keras-position-wise-feed-forward=0.1.0',
-    ],
+    install_requires=get_requirements(),
     classifiers=(
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.6",

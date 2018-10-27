@@ -17,7 +17,7 @@ class TestGetEncoderComponent(unittest.TestCase):
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(optimizer='adam', loss='mse', metrics={})
         model.summary(line_length=160)
-        input_layer = keras.layers.Input(shape=(512, 768), name='Input')
+
         output_layer = _get_encoder_component(
             name='Encoder',
             input_layer=input_layer,
