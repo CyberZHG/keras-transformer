@@ -144,3 +144,27 @@ def _get_decoder_component(name, input_layer, encoded_layer, head_num, hidden_di
         dropout_rate=dropout_rate,
     )
     return feed_forward_layer
+
+
+def get_encoders(encoder_num, input_layer, head_num, hidden_dim, activation='relu', dropout_rate=0.0):
+    """Get encoders.
+
+    :param encoder_num: Number of encoder components
+    :param input_layer: Input layer.
+    :param head_num: Number of heads in multi-head self-attention.
+    :param hidden_dim: Hidden dimension of feed forward layer.
+    :param activation: Activation for multi-head self-attention and feed-forward layer.
+    :param dropout_rate: Dropout rate.
+    :return: Output layer.
+    """
+    last_layer = input_layer
+    for i in range(encoder_num):
+        last_layer = _get_encoder_component(
+            name='Encoder-%d' % (i + 1),
+            input_layer=last_layer,
+            head_num=head_num,
+            hidden_dim=hidden_dim,
+            activation=activation,
+            dropout_rate=dropout_rate,
+        )
+    return last_layer
