@@ -321,7 +321,7 @@ def get_model(token_num,
     return keras.models.Model(inputs=[encoder_input, decoder_input], outputs=dense_layer)
 
 
-def decode(model, tokens, start_token, end_token, pad_token):
+def decode(model, tokens, start_token, end_token, pad_token, max_len=None):
     """Decode with the given model and input tokens.
 
     :param model: The trained model.
@@ -329,6 +329,7 @@ def decode(model, tokens, start_token, end_token, pad_token):
     :param start_token: The token that represents the start of a sentence.
     :param end_token: The token that represents the end of a sentence.
     :param pad_token: The token that represents padding.
+    :param max_len: Maximum length of decoded list.
     :return: Decoded tokens.
     """
     is_single = not isinstance(tokens[0], list)
@@ -337,23 +338,25 @@ def decode(model, tokens, start_token, end_token, pad_token):
     batch_size = len(tokens)
     decoder_inputs = [[start_token] for _ in range(batch_size)]
     outputs = [None for _ in range(batch_size)]
+    output_len = 1
     while len(list(filter(lambda x: x is None, outputs))) > 0:
+        output_len += 1
         batch_inputs, batch_outputs = [], []
         max_input_len = 0
         index_map = {}
         for i in range(batch_size):
             if outputs[i] is None:
                 index_map[len(batch_inputs)] = i
-                batch_inputs.append(tokens[i])
+                batch_inputs.append(tokens[i][:])
                 batch_outputs.append(decoder_inputs[i])
                 max_input_len = max(max_input_len, len(tokens[i]))
         for i in range(len(batch_inputs)):
             batch_inputs[i] += [pad_token] * (max_input_len - len(batch_inputs[i]))
         predicts = model.predict([np.asarray(batch_inputs), np.asarray(batch_outputs)])
         for i in range(len(predicts)):
-            last_token = np.argmax(predicts[i][-1]).tolist()
+            last_token = np.argmax(predicts[i][-1])
             decoder_inputs[index_map[i]].append(last_token)
-            if last_token == end_token:
+            if last_token == end_token or (max_len is not None and output_len >= max_len):
                 outputs[index_map[i]] = decoder_inputs[index_map[i]]
     if is_single:
         outputs = outputs[0]

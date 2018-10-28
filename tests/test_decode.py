@@ -1,6 +1,4 @@
 import os
-import tempfile
-import random
 import unittest
 import keras
 import numpy as np
@@ -21,14 +19,12 @@ class TestDecode(unittest.TestCase):
                 token_dict[token] = len(token_dict)
         model = get_model(
             token_num=len(token_dict),
-            embed_dim=30,
+            embed_dim=32,
             encoder_num=3,
             decoder_num=2,
-            head_num=3,
-            hidden_dim=120,
-            activation='relu',
+            head_num=4,
+            hidden_dim=128,
             dropout_rate=0.05,
-            embed_weights=np.random.random((13, 30)),
         )
         model.compile(
             optimizer=keras.optimizers.Adam(),
@@ -38,7 +34,7 @@ class TestDecode(unittest.TestCase):
         model.summary()
         encoder_inputs_no_padding = []
         encoder_inputs, decoder_inputs, decoder_outputs = [], [], []
-        for i in range(1, len(tokens) - 1):
+        for i in range(1, len(tokens)):
             encode_tokens, decode_tokens = tokens[:i], tokens[i:]
             encode_tokens = ['<START>'] + encode_tokens + ['<END>'] + ['<PAD>'] * (len(tokens) - len(encode_tokens))
             output_tokens = decode_tokens + ['<END>', '<PAD>'] + ['<PAD>'] * (len(tokens) - len(decode_tokens))
@@ -50,17 +46,22 @@ class TestDecode(unittest.TestCase):
             encoder_inputs.append(encode_tokens)
             decoder_inputs.append(decode_tokens)
             decoder_outputs.append(output_tokens)
+        current_path = os.path.dirname(os.path.abspath(__file__))
+        model_path = os.path.join(current_path, 'test_transformer.h5')
+        if os.path.exists(model_path):
+            # model.load_weights(model_path, by_name=True)
+            pass
         model.fit(
-            x=[np.asarray(encoder_inputs * 1000), np.asarray(decoder_inputs * 1000)],
-            y=np.asarray(decoder_outputs * 1000),
+            x=[np.asarray(encoder_inputs * 2048), np.asarray(decoder_inputs * 2048)],
+            y=np.asarray(decoder_outputs * 2048),
             epochs=10,
+            batch_size=128,
         )
-        model_path = os.path.join(tempfile.gettempdir(), 'test_transformer_%f.h5' % random.random())
         model.save(model_path)
         model = keras.models.load_model(model_path, custom_objects=get_custom_objects())
         decoded = decode(
             model,
-            encoder_inputs_no_padding,
+            encoder_inputs_no_padding * 2,
             start_token=token_dict['<START>'],
             end_token=token_dict['<END>'],
             pad_token=token_dict['<PAD>'],
@@ -70,13 +71,30 @@ class TestDecode(unittest.TestCase):
             print(' '.join(map(lambda x: token_dict_rev[x], decoded[i][1:-1])))
         for i in range(len(decoded)):
             for j in range(len(decoded[i])):
-                self.assertEqual(decoder_inputs[i][j], decoded[i][j], decoded)
+                self.assertEqual(decoder_inputs[i % len(decoder_inputs)][j], decoded[i][j])
+
         decoded = decode(
             model,
-            encoder_inputs_no_padding[2],
+            encoder_inputs_no_padding[2] + [0] * 5,
             start_token=token_dict['<START>'],
             end_token=token_dict['<END>'],
             pad_token=token_dict['<PAD>'],
         )
         for j in range(len(decoded)):
             self.assertEqual(decoder_inputs[2][j], decoded[j], decoded)
+
+        decoded = decode(
+            model,
+            encoder_inputs_no_padding,
+            start_token=token_dict['<START>'],
+            end_token=token_dict['<END>'],
+            pad_token=token_dict['<PAD>'],
+            max_len=4,
+        )
+        token_dict_rev = {v: k for k, v in token_dict.items()}
+        for i in range(len(decoded)):
+            print(' '.join(map(lambda x: token_dict_rev[x], decoded[i][1:-1])))
+        for i in range(len(decoded)):
+            self.assertTrue(len(decoded[i]) <= 4, decoded[i])
+            for j in range(len(decoded[i])):
+                self.assertEqual(decoder_inputs[i][j], decoded[i][j], decoded)
