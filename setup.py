@@ -1,13 +1,8 @@
 from setuptools import setup, find_packages
 
-
-def get_requirements():
-    with open('requirements.txt', 'r') as reader:
-        return list(map(lambda x: x.strip(), reader.readlines()))
-
 setup(
     name='keras-transformer',
-    version='0.1.0',
+    version='0.3.0',
     packages=find_packages(),
     url='https://github.com/CyberZHG/keras-transformer',
     license='MIT',
@@ -15,7 +10,14 @@ setup(
     author_email='CyberZHG@gmail.com',
     description='Transformer implemented in Keras',
     long_description=open('README.rst', 'r').read(),
-    install_requires=get_requirements(),
+    install_requires=[
+        'numpy',
+        'Keras',
+        'keras-multi-head==0.10.0',
+        'keras-layer-normalization==0.2.0',
+        'keras-position-wise-feed-forward==0.1.0',
+        'keras-pos-embd==0.4.0',
+    ],
     classifiers=(
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.6",
