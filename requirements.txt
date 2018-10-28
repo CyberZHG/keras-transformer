@@ -1,6 +1,6 @@
 numpy
 Keras
-keras-multi-head==0.12.0
+keras-multi-head==0.14.0
 keras-layer-normalization==0.2.0
 keras-position-wise-feed-forward==0.1.0
 keras-pos-embd==0.4.0
