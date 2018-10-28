@@ -75,14 +75,21 @@ def _feed_forward_builder(name, hidden_dim, activation):
     return __feed_forward_builder
 
 
-def _get_encoder_component(name, input_layer, head_num, hidden_dim, activation='relu', dropout_rate=0.0):
+def _get_encoder_component(name,
+                           input_layer,
+                           head_num,
+                           hidden_dim,
+                           attention_activation=None,
+                           feed_forward_activation='relu',
+                           dropout_rate=0.0):
     """Multi-head self-attention and feed-forward layer.
 
     :param name: Prefix of names for internal layers.
     :param input_layer: Input layer.
     :param head_num: Number of heads in multi-head self-attention.
     :param hidden_dim: Hidden dimension of feed forward layer.
-    :param activation: Activation for multi-head self-attention and feed-forward layer.
+    :param attention_activation: Activation for multi-head self-attention.
+    :param feed_forward_activation: Activation for feed-forward layer.
     :param dropout_rate: Dropout rate.
     :return: Output layer.
     """
@@ -94,7 +101,7 @@ def _get_encoder_component(name, input_layer, head_num, hidden_dim, activation='
         build_func=_attention_builder(
             name=attention_name,
             head_num=head_num,
-            activation=activation,
+            activation=attention_activation,
             history_only=False,
         ),
         dropout_rate=dropout_rate,
@@ -105,14 +112,21 @@ def _get_encoder_component(name, input_layer, head_num, hidden_dim, activation='
         build_func=_feed_forward_builder(
             name=feed_forward_name,
             hidden_dim=hidden_dim,
-            activation=activation,
+            activation=feed_forward_activation,
         ),
         dropout_rate=dropout_rate,
     )
     return feed_forward_layer
 
 
-def _get_decoder_component(name, input_layer, encoded_layer, head_num, hidden_dim, activation='relu', dropout_rate=0.0):
+def _get_decoder_component(name,
+                           input_layer,
+                           encoded_layer,
+                           head_num,
+                           hidden_dim,
+                           attention_activation=None,
+                           feed_forward_activation='relu',
+                           dropout_rate=0.0):
     """Multi-head self-attention, multi-head query attention and feed-forward layer.
 
     :param name: Prefix of names for internal layers.
@@ -120,7 +134,8 @@ def _get_decoder_component(name, input_layer, encoded_layer, head_num, hidden_di
     :param encoded_layer: Encoded layer from encoder.
     :param head_num: Number of heads in multi-head self-attention.
     :param hidden_dim: Hidden dimension of feed forward layer.
-    :param activation: Activation for multi-head self-attention and feed-forward layer.
+    :param attention_activation: Activation for multi-head self-attention.
+    :param feed_forward_activation: Activation for feed-forward layer.
     :param dropout_rate: Dropout rate.
     :return: Output layer.
     """
@@ -133,7 +148,7 @@ def _get_decoder_component(name, input_layer, encoded_layer, head_num, hidden_di
         build_func=_attention_builder(
             name=self_attention_name,
             head_num=head_num,
-            activation=activation,
+            activation=attention_activation,
             history_only=True,
         ),
         dropout_rate=dropout_rate,
@@ -144,7 +159,7 @@ def _get_decoder_component(name, input_layer, encoded_layer, head_num, hidden_di
         build_func=_attention_builder(
             name=query_attention_name,
             head_num=head_num,
-            activation=activation,
+            activation=attention_activation,
             history_only=False,
         ),
         dropout_rate=dropout_rate,
@@ -155,21 +170,28 @@ def _get_decoder_component(name, input_layer, encoded_layer, head_num, hidden_di
         build_func=_feed_forward_builder(
             name=feed_forward_name,
             hidden_dim=hidden_dim,
-            activation=activation,
+            activation=feed_forward_activation,
         ),
         dropout_rate=dropout_rate,
     )
     return feed_forward_layer
 
 
-def get_encoders(encoder_num, input_layer, head_num, hidden_dim, activation='relu', dropout_rate=0.0):
+def get_encoders(encoder_num,
+                 input_layer,
+                 head_num,
+                 hidden_dim,
+                 attention_activation=None,
+                 feed_forward_activation='relu',
+                 dropout_rate=0.0):
     """Get encoders.
 
     :param encoder_num: Number of encoder components.
     :param input_layer: Input layer.
     :param head_num: Number of heads in multi-head self-attention.
     :param hidden_dim: Hidden dimension of feed forward layer.
-    :param activation: Activation for multi-head self-attention and feed-forward layer.
+    :param attention_activation: Activation for multi-head self-attention.
+    :param feed_forward_activation: Activation for feed-forward layer.
     :param dropout_rate: Dropout rate.
     :return: Output layer.
     """
@@ -180,13 +202,21 @@ def get_encoders(encoder_num, input_layer, head_num, hidden_dim, activation='rel
             input_layer=last_layer,
             head_num=head_num,
             hidden_dim=hidden_dim,
-            activation=activation,
+            attention_activation=attention_activation,
+            feed_forward_activation=feed_forward_activation,
             dropout_rate=dropout_rate,
         )
     return last_layer
 
 
-def get_decoders(decoder_num, input_layer, encoded_layer, head_num, hidden_dim, activation='relu', dropout_rate=0.0):
+def get_decoders(decoder_num,
+                 input_layer,
+                 encoded_layer,
+                 head_num,
+                 hidden_dim,
+                 attention_activation=None,
+                 feed_forward_activation='relu',
+                 dropout_rate=0.0):
     """Get decoders.
 
     :param decoder_num: Number of decoder components.
@@ -194,7 +224,8 @@ def get_decoders(decoder_num, input_layer, encoded_layer, head_num, hidden_dim, 
     :param encoded_layer: Encoded layer from encoder.
     :param head_num: Number of heads in multi-head self-attention.
     :param hidden_dim: Hidden dimension of feed forward layer.
-    :param activation: Activation for multi-head self-attention and feed-forward layer.
+    :param attention_activation: Activation for multi-head self-attention.
+    :param feed_forward_activation: Activation for feed-forward layer.
     :param dropout_rate: Dropout rate.
     :return: Output layer.
     """
@@ -206,7 +237,8 @@ def get_decoders(decoder_num, input_layer, encoded_layer, head_num, hidden_dim, 
             encoded_layer=encoded_layer,
             head_num=head_num,
             hidden_dim=hidden_dim,
-            activation=activation,
+            attention_activation=attention_activation,
+            feed_forward_activation=feed_forward_activation,
             dropout_rate=dropout_rate,
         )
     return last_layer
@@ -218,7 +250,8 @@ def get_model(token_num,
               decoder_num,
               head_num,
               hidden_dim,
-              activation='relu',
+              attention_activation=None,
+              feed_forward_activation='relu',
               dropout_rate=0.0,
               use_same_embed=True,
               embed_weights=None,
@@ -231,7 +264,8 @@ def get_model(token_num,
     :param decoder_num: Number of decoder components.
     :param head_num: Number of heads in multi-head self-attention.
     :param hidden_dim: Hidden dimension of feed forward layer.
-    :param activation: Activation for multi-head self-attention and feed-forward layer.
+    :param attention_activation: Activation for multi-head self-attention.
+    :param feed_forward_activation: Activation for feed-forward layer.
     :param dropout_rate: Dropout rate.
     :param use_same_embed: Whether to use the same token embedding layer. `token_num`, `embed_weights` and
                            `embed_trainable` should be lists of two elements if it is False.
@@ -296,7 +330,8 @@ def get_model(token_num,
         input_layer=encoder_embed,
         head_num=head_num,
         hidden_dim=hidden_dim,
-        activation=activation,
+        attention_activation=attention_activation,
+        feed_forward_activation=feed_forward_activation,
         dropout_rate=dropout_rate,
     )
     decoder_input = keras.layers.Input(shape=(None,), name='Decoder-Input')
@@ -310,7 +345,8 @@ def get_model(token_num,
         encoded_layer=encoded_layer,
         head_num=head_num,
         hidden_dim=hidden_dim,
-        activation=activation,
+        attention_activation=attention_activation,
+        feed_forward_activation=feed_forward_activation,
         dropout_rate=dropout_rate,
     )
     dense_layer = keras.layers.Dense(
