@@ -1,4 +1,5 @@
 import keras
+import numpy as np
 from keras_layer_normalization import LayerNormalization
 from keras_multi_head import MultiHeadAttention
 from keras_position_wise_feed_forward import FeedForward
@@ -244,6 +245,7 @@ def get_model(token_num,
     embed_layer = keras.layers.Embedding(
         input_dim=token_num,
         output_dim=embed_dim,
+        mask_zero=True,
         weights=embed_weights,
         trainable=embed_trainable,
         name='Token-Embedding',
@@ -281,3 +283,42 @@ def get_model(token_num,
         name='Output',
     )(decoded_layer)
     return keras.models.Model(inputs=[encoder_input, decoder_input], outputs=dense_layer)
+
+
+def decode(model, tokens, start_token, end_token, pad_token):
+    """Decode with the given model and input tokens.
+
+    :param model: The trained model.
+    :param tokens: The input tokens of encoder.
+    :param start_token: The token that represents the start of a sentence.
+    :param end_token: The token that represents the end of a sentence.
+    :param pad_token: The token that represents padding.
+    :return: Decoded tokens.
+    """
+    is_single = not isinstance(tokens[0], list)
+    if is_single:
+        tokens = [tokens]
+    batch_size = len(tokens)
+    decoder_inputs = [[start_token] for _ in range(batch_size)]
+    outputs = [None for _ in range(batch_size)]
+    while len(list(filter(lambda x: x is None, outputs))) > 0:
+        batch_inputs, batch_outputs = [], []
+        max_input_len = 0
+        index_map = {}
+        for i in range(batch_size):
+            if outputs[i] is None:
+                index_map[len(batch_inputs)] = i
+                batch_inputs.append(tokens[i])
+                batch_outputs.append(decoder_inputs[i])
+                max_input_len = max(max_input_len, len(tokens[i]))
+        for i in range(len(batch_inputs)):
+            batch_inputs[i] += [pad_token] * (max_input_len - len(batch_inputs[i]))
+        predicts = model.predict([np.asarray(batch_inputs), np.asarray(batch_outputs)])
+        for i in range(len(predicts)):
+            last_token = np.argmax(predicts[i][-1]).tolist()
+            decoder_inputs[index_map[i]].append(last_token)
+            if last_token == end_token:
+                outputs[index_map[i]] = decoder_inputs[index_map[i]]
+    if is_single:
+        outputs = outputs[0]
+    return outputs
