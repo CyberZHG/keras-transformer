@@ -25,18 +25,18 @@ def _wrap_layer(name, input_layer, build_func, dropout_rate=0.0):
     :return: Output layer.
     """
     build_output = build_func(input_layer)
-    normal_layer = LayerNormalization(name='%s-Norm' % name)(build_output)
     if dropout_rate > 0.0:
         dropout_layer = keras.layers.Dropout(
             rate=dropout_rate,
             name='%s-Dropout' % name,
-        )(normal_layer)
+        )(build_output)
     else:
-        dropout_layer = normal_layer
+        dropout_layer = build_output
     if isinstance(input_layer, list):
         input_layer = input_layer[0]
-    output_layer = keras.layers.Add(name='%s-Add' % name)([input_layer, dropout_layer])
-    return output_layer
+    add_layer = keras.layers.Add(name='%s-Add' % name)([input_layer, dropout_layer])
+    normal_layer = LayerNormalization(name='%s-Norm' % name)(add_layer)
+    return normal_layer
 
 
 def _attention_builder(name, head_num, activation, history_only):
