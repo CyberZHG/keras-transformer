@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='keras-transformer',
-    version='0.10.0',
+    version='0.11.0',
     packages=find_packages(),
     url='https://github.com/CyberZHG/keras-transformer',
     license='MIT',
@@ -16,7 +16,7 @@ setup(
         'keras-multi-head==0.14.0',
         'keras-layer-normalization==0.2.0',
         'keras-position-wise-feed-forward==0.1.0',
-        'keras-pos-embd==0.4.0',
+        'keras-pos-embd==0.6.0',
     ],
     classifiers=(
         "Programming Language :: Python :: 2.7",

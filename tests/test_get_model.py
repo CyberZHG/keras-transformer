@@ -22,6 +22,7 @@ class TestGetModel(unittest.TestCase):
             dropout_rate=0.05,
             use_same_embed=True,
             embed_weights=np.random.random((13, 30)),
+            trainable=False,
         )
         model.compile(
             optimizer=keras.optimizers.Adam(),
