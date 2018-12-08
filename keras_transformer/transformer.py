@@ -4,6 +4,7 @@ from keras_layer_normalization import LayerNormalization
 from keras_multi_head import MultiHeadAttention
 from keras_position_wise_feed_forward import FeedForward
 from keras_pos_embd import TrigPosEmbedding
+from keras_embed_sim import EmbeddingRet, EmbeddingSim
 
 
 def get_custom_objects():
@@ -12,6 +13,8 @@ def get_custom_objects():
         'MultiHeadAttention': MultiHeadAttention,
         'FeedForward': FeedForward,
         'TrigPosEmbedding': TrigPosEmbedding,
+        'EmbeddingRet': EmbeddingRet,
+        'EmbeddingSim': EmbeddingSim,
     }
 
 
@@ -325,7 +328,7 @@ def get_model(token_num,
         decoder_embed_trainable = decoder_embed_weights is None
 
     if use_same_embed:
-        encoder_embed_layer = decoder_embed_layer = keras.layers.Embedding(
+        encoder_embed_layer = decoder_embed_layer = EmbeddingRet(
             input_dim=encoder_token_num,
             output_dim=embed_dim,
             mask_zero=True,
@@ -334,7 +337,7 @@ def get_model(token_num,
             name='Token-Embedding',
         )
     else:
-        encoder_embed_layer = keras.layers.Embedding(
+        encoder_embed_layer = EmbeddingRet(
             input_dim=encoder_token_num,
             output_dim=embed_dim,
             mask_zero=True,
@@ -342,7 +345,7 @@ def get_model(token_num,
             trainable=encoder_embed_trainable,
             name='Encoder-Token-Embedding',
         )
-        decoder_embed_layer = keras.layers.Embedding(
+        decoder_embed_layer = EmbeddingRet(
             input_dim=decoder_token_num,
             output_dim=embed_dim,
             mask_zero=True,
@@ -354,7 +357,7 @@ def get_model(token_num,
     encoder_embed = TrigPosEmbedding(
         mode=TrigPosEmbedding.MODE_ADD,
         name='Encoder-Embedding',
-    )(encoder_embed_layer(encoder_input))
+    )(encoder_embed_layer(encoder_input)[0])
     encoded_layer = get_encoders(
         encoder_num=encoder_num,
         input_layer=encoder_embed,
@@ -366,10 +369,11 @@ def get_model(token_num,
         trainable=trainable,
     )
     decoder_input = keras.layers.Input(shape=(None,), name='Decoder-Input')
+    decoder_embed, decoder_embed_weights = decoder_embed_layer(decoder_input)
     decoder_embed = TrigPosEmbedding(
         mode=TrigPosEmbedding.MODE_ADD,
         name='Decoder-Embedding',
-    )(decoder_embed_layer(decoder_input))
+    )(decoder_embed)
     decoded_layer = get_decoders(
         decoder_num=decoder_num,
         input_layer=decoder_embed,
@@ -381,12 +385,10 @@ def get_model(token_num,
         dropout_rate=dropout_rate,
         trainable=trainable,
     )
-    dense_layer = keras.layers.Dense(
-        units=decoder_token_num,
-        activation='softmax',
+    dense_layer = EmbeddingSim(
         trainable=trainable,
         name='Output',
-    )(decoded_layer)
+    )([decoded_layer, decoder_embed_weights])
     return keras.models.Model(inputs=[encoder_input, decoder_input], outputs=dense_layer)
 
 
