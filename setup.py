@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='keras-transformer',
-    version='0.12.0',
+    version='0.13.0',
     packages=find_packages(),
     url='https://github.com/CyberZHG/keras-transformer',
     license='MIT',

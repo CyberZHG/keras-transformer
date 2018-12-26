@@ -56,7 +56,8 @@ model = get_model(
     decoder_num=2,
     head_num=3,
     hidden_dim=120,
-    activation='relu',
+    attention_activation='relu',
+    feed_forward_activation='relu',
     dropout_rate=0.05,
     embed_weights=np.random.random((13, 30)),
 )
