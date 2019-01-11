@@ -12,7 +12,7 @@ with codecs.open('requirements.txt', 'r', 'utf8') as reader:
 
 setup(
     name='keras-transformer',
-    version='0.18.0',
+    version='0.19.0',
     packages=find_packages(),
     url='https://github.com/CyberZHG/keras-transformer',
     license='MIT',

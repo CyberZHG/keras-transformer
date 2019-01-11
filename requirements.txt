@@ -1,7 +1,7 @@
 numpy
 Keras
-keras-multi-head==0.15.0
-keras-layer-normalization==0.9.0
-keras-position-wise-feed-forward==0.3.0
-keras-pos-embd==0.7.0
+keras-multi-head==0.16.0
+keras-layer-normalization==0.11.0
+keras-position-wise-feed-forward==0.4.0
+keras-pos-embd==0.8.0
 keras-embed-sim==0.2.0
