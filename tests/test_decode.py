@@ -49,8 +49,7 @@ class TestDecode(unittest.TestCase):
         current_path = os.path.dirname(os.path.abspath(__file__))
         model_path = os.path.join(current_path, 'test_transformer.h5')
         if os.path.exists(model_path):
-            # model.load_weights(model_path, by_name=True)
-            pass
+            model.load_weights(model_path, by_name=True)
         model.fit(
             x=[np.asarray(encoder_inputs * 2048), np.asarray(decoder_inputs * 2048)],
             y=np.asarray(decoder_outputs * 2048),

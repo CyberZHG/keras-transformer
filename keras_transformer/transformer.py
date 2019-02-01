@@ -392,7 +392,24 @@ def get_model(token_num,
     return keras.models.Model(inputs=[encoder_input, decoder_input], outputs=dense_layer)
 
 
-def decode(model, tokens, start_token, end_token, pad_token, max_len=None):
+def _get_max_suffix_repeat_times(tokens, max_len):
+    detect_len = min(max_len, len(tokens))
+    next = [-1] * detect_len
+    k = -1
+    for i in range(1, detect_len):
+        while k >= 0 and tokens[len(tokens) - i - 1] != tokens[len(tokens) - k - 2]:
+            k = next[k]
+        if tokens[len(tokens) - i - 1] == tokens[len(tokens) - k - 2]:
+            k += 1
+        next[i] = k
+    max_repeat = 1
+    for i in range(2, detect_len):
+        if next[i] >= 0 and (i + 1) % (i - next[i]) == 0:
+            max_repeat = max(max_repeat, (i + 1) // (i - next[i]))
+    return max_repeat
+
+
+def decode(model, tokens, start_token, end_token, pad_token, max_len=10000, max_repeat=10, max_repeat_block=10):
     """Decode with the given model and input tokens.
 
     :param model: The trained model.
@@ -401,6 +418,8 @@ def decode(model, tokens, start_token, end_token, pad_token, max_len=None):
     :param end_token: The token that represents the end of a sentence.
     :param pad_token: The token that represents padding.
     :param max_len: Maximum length of decoded list.
+    :param max_repeat: Maximum number of repeating blocks.
+    :param max_repeat_block: Maximum length of the repeating block.
     :return: Decoded tokens.
     """
     is_single = not isinstance(tokens[0], list)
@@ -427,7 +446,9 @@ def decode(model, tokens, start_token, end_token, pad_token, max_len=None):
         for i in range(len(predicts)):
             last_token = np.argmax(predicts[i][-1])
             decoder_inputs[index_map[i]].append(last_token)
-            if last_token == end_token or (max_len is not None and output_len >= max_len):
+            if last_token == end_token or\
+                    (max_len is not None and output_len >= max_len) or\
+                    _get_max_suffix_repeat_times(decoder_inputs, max_repeat * max_repeat_block) >= max_repeat:
                 outputs[index_map[i]] = decoder_inputs[index_map[i]]
     if is_single:
         outputs = outputs[0]
