@@ -1,24 +1,27 @@
+import codecs
 from setuptools import setup, find_packages
+
+
+with codecs.open('README.md', 'r', 'utf8') as reader:
+    long_description = reader.read()
+
+
+with codecs.open('requirements.txt', 'r', 'utf8') as reader:
+    install_requires = list(map(lambda x: x.strip(), reader.readlines()))
+
 
 setup(
     name='keras-transformer',
-    version='0.13.0',
+    version='0.16.0',
     packages=find_packages(),
     url='https://github.com/CyberZHG/keras-transformer',
     license='MIT',
     author='CyberZHG',
     author_email='CyberZHG@gmail.com',
     description='Transformer implemented in Keras',
-    long_description=open('README.rst', 'r').read(),
-    install_requires=[
-        'numpy',
-        'Keras',
-        'keras-multi-head==0.14.0',
-        'keras-layer-normalization>=0.2.0',
-        'keras-position-wise-feed-forward==0.1.0',
-        'keras-pos-embd==0.6.0',
-        'keras-embed-sim==0.1.0',
-    ],
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    install_requires=install_requires,
     classifiers=(
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.6",
