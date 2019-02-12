@@ -65,6 +65,7 @@ model.compile(
     optimizer=keras.optimizers.Adam(),
     loss=keras.losses.sparse_categorical_crossentropy,
     metrics={},
+    # Note: There is a bug in keras versions 2.2.3 and 2.2.4 which causes "Incompatible shapes" error, if any type of accuracy metric is used along with sparse_categorical_crossentropy. Use keras<=2.2.2 to use get validation accuracy.
 )
 model.summary()
 
