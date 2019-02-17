@@ -50,13 +50,14 @@ class TestDecode(unittest.TestCase):
         model_path = os.path.join(current_path, 'test_transformer.h5')
         if os.path.exists(model_path):
             model.load_weights(model_path, by_name=True)
-        model.fit(
-            x=[np.asarray(encoder_inputs * 2048), np.asarray(decoder_inputs * 2048)],
-            y=np.asarray(decoder_outputs * 2048),
-            epochs=10,
-            batch_size=128,
-        )
-        model.save(model_path)
+        else:
+            model.fit(
+                x=[np.asarray(encoder_inputs * 2048), np.asarray(decoder_inputs * 2048)],
+                y=np.asarray(decoder_outputs * 2048),
+                epochs=10,
+                batch_size=128,
+            )
+            model.save(model_path)
         model = keras.models.load_model(model_path, custom_objects=get_custom_objects())
         decoded = decode(
             model,

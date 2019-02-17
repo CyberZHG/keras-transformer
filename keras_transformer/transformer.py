@@ -7,6 +7,12 @@ from keras_pos_embd import TrigPosEmbedding
 from keras_embed_sim import EmbeddingRet, EmbeddingSim
 
 
+__all__ = [
+    'get_custom_objects', 'get_encoders', 'get_decoders', 'get_model', 'decode',
+    'attention_builder', 'feed_forward_builder', 'get_encoder_component', 'get_decoder_component',
+]
+
+
 def get_custom_objects():
     return {
         'LayerNormalization': LayerNormalization,
@@ -46,7 +52,7 @@ def _wrap_layer(name, input_layer, build_func, dropout_rate=0.0, trainable=True)
     return normal_layer
 
 
-def _attention_builder(name, head_num, activation, history_only, trainable=True):
+def attention_builder(name, head_num, activation, history_only, trainable=True):
     """Get multi-head self-attention builder.
 
     :param name: Prefix of names for internal layers.
@@ -56,7 +62,7 @@ def _attention_builder(name, head_num, activation, history_only, trainable=True)
     :param trainable: Whether the layer is trainable.
     :return:
     """
-    def __attention_builder(x):
+    def _attention_builder(x):
         return MultiHeadAttention(
             head_num=head_num,
             activation=activation,
@@ -64,10 +70,10 @@ def _attention_builder(name, head_num, activation, history_only, trainable=True)
             trainable=trainable,
             name=name,
         )(x)
-    return __attention_builder
+    return _attention_builder
 
 
-def _feed_forward_builder(name, hidden_dim, activation, trainable=True):
+def feed_forward_builder(name, hidden_dim, activation, trainable=True):
     """Get position-wise feed-forward layer builder.
 
     :param name: Prefix of names for internal layers.
@@ -76,24 +82,24 @@ def _feed_forward_builder(name, hidden_dim, activation, trainable=True):
     :param trainable: Whether the layer is trainable.
     :return:
     """
-    def __feed_forward_builder(x):
+    def _feed_forward_builder(x):
         return FeedForward(
             units=hidden_dim,
             activation=activation,
             trainable=trainable,
             name=name,
         )(x)
-    return __feed_forward_builder
+    return _feed_forward_builder
 
 
-def _get_encoder_component(name,
-                           input_layer,
-                           head_num,
-                           hidden_dim,
-                           attention_activation=None,
-                           feed_forward_activation='relu',
-                           dropout_rate=0.0,
-                           trainable=True):
+def get_encoder_component(name,
+                          input_layer,
+                          head_num,
+                          hidden_dim,
+                          attention_activation=None,
+                          feed_forward_activation='relu',
+                          dropout_rate=0.0,
+                          trainable=True):
     """Multi-head self-attention and feed-forward layer.
 
     :param name: Prefix of names for internal layers.
@@ -111,7 +117,7 @@ def _get_encoder_component(name,
     attention_layer = _wrap_layer(
         name=attention_name,
         input_layer=input_layer,
-        build_func=_attention_builder(
+        build_func=attention_builder(
             name=attention_name,
             head_num=head_num,
             activation=attention_activation,
@@ -124,7 +130,7 @@ def _get_encoder_component(name,
     feed_forward_layer = _wrap_layer(
         name=feed_forward_name,
         input_layer=attention_layer,
-        build_func=_feed_forward_builder(
+        build_func=feed_forward_builder(
             name=feed_forward_name,
             hidden_dim=hidden_dim,
             activation=feed_forward_activation,
@@ -136,15 +142,15 @@ def _get_encoder_component(name,
     return feed_forward_layer
 
 
-def _get_decoder_component(name,
-                           input_layer,
-                           encoded_layer,
-                           head_num,
-                           hidden_dim,
-                           attention_activation=None,
-                           feed_forward_activation='relu',
-                           dropout_rate=0.0,
-                           trainable=True):
+def get_decoder_component(name,
+                          input_layer,
+                          encoded_layer,
+                          head_num,
+                          hidden_dim,
+                          attention_activation=None,
+                          feed_forward_activation='relu',
+                          dropout_rate=0.0,
+                          trainable=True):
     """Multi-head self-attention, multi-head query attention and feed-forward layer.
 
     :param name: Prefix of names for internal layers.
@@ -164,7 +170,7 @@ def _get_decoder_component(name,
     self_attention_layer = _wrap_layer(
         name=self_attention_name,
         input_layer=input_layer,
-        build_func=_attention_builder(
+        build_func=attention_builder(
             name=self_attention_name,
             head_num=head_num,
             activation=attention_activation,
@@ -177,7 +183,7 @@ def _get_decoder_component(name,
     query_attention_layer = _wrap_layer(
         name=query_attention_name,
         input_layer=[self_attention_layer, encoded_layer, encoded_layer],
-        build_func=_attention_builder(
+        build_func=attention_builder(
             name=query_attention_name,
             head_num=head_num,
             activation=attention_activation,
@@ -190,7 +196,7 @@ def _get_decoder_component(name,
     feed_forward_layer = _wrap_layer(
         name=feed_forward_name,
         input_layer=query_attention_layer,
-        build_func=_feed_forward_builder(
+        build_func=feed_forward_builder(
             name=feed_forward_name,
             hidden_dim=hidden_dim,
             activation=feed_forward_activation,
@@ -224,7 +230,7 @@ def get_encoders(encoder_num,
     """
     last_layer = input_layer
     for i in range(encoder_num):
-        last_layer = _get_encoder_component(
+        last_layer = get_encoder_component(
             name='Encoder-%d' % (i + 1),
             input_layer=last_layer,
             head_num=head_num,
@@ -261,7 +267,7 @@ def get_decoders(decoder_num,
     """
     last_layer = input_layer
     for i in range(decoder_num):
-        last_layer = _get_decoder_component(
+        last_layer = get_decoder_component(
             name='Decoder-%d' % (i + 1),
             input_layer=last_layer,
             encoded_layer=encoded_layer,
