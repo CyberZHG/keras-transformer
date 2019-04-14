@@ -6,7 +6,10 @@ from keras_transformer import gelu
 class TestGelu(unittest.TestCase):
 
     def test_sample(self):
-        results = gelu(K.constant([-30.0, -1.0, 0.0, 1.0, 30.0])).eval(session=K.get_session())
+        try:
+            results = gelu(K.constant([-30.0, -1.0, 0.0, 1.0, 30.0])).eval(session=K.get_session())
+        except Exception as e:
+            results = gelu(K.constant([-30.0, -1.0, 0.0, 1.0, 30.0])).eval()
         self.assertEqual(0.0, results[0])
         self.assertGreater(0.0, results[1])
         self.assertLess(-1.0, results[1])

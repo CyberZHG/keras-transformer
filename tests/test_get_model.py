@@ -1,6 +1,5 @@
 import os
 import tempfile
-import random
 import unittest
 import keras
 import numpy as np
@@ -29,7 +28,7 @@ class TestGetModel(unittest.TestCase):
             loss=keras.losses.categorical_crossentropy,
             metrics={},
         )
-        model_path = os.path.join(tempfile.gettempdir(), 'test_transformer_%f.h5' % random.random())
+        model_path = os.path.join(tempfile.gettempdir(), 'test_transformer_%f.h5' % np.random.random())
         model.save(model_path)
         model = keras.models.load_model(model_path, custom_objects=get_custom_objects())
         model.summary()
@@ -57,7 +56,7 @@ class TestGetModel(unittest.TestCase):
             loss=keras.losses.categorical_crossentropy,
             metrics={},
         )
-        model_path = os.path.join(tempfile.gettempdir(), 'test_transformer_%f.h5' % random.random())
+        model_path = os.path.join(tempfile.gettempdir(), 'test_transformer_%f.h5' % np.random.random())
         model.save(model_path)
         model = keras.models.load_model(model_path, custom_objects=get_custom_objects())
         model.summary()
