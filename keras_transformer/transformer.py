@@ -293,7 +293,8 @@ def get_model(token_num,
               use_same_embed=True,
               embed_weights=None,
               embed_trainable=None,
-              trainable=True):
+              trainable=True,
+              training=False):
     """Get full model without compilation.
 
     :param token_num: Number of distinct tokens.
@@ -311,6 +312,7 @@ def get_model(token_num,
     :param embed_trainable: Whether the token embedding is trainable. It will automatically set to False if the given
                             value is None when embedding weights has been provided.
     :param trainable: Whether the layers are trainable.
+    :param training: The input layers and output layer will be returned if `training` is `False`
     :return: Keras model.
     """
     if not isinstance(token_num, list):
@@ -395,7 +397,11 @@ def get_model(token_num,
         trainable=trainable,
         name='Output',
     )([decoded_layer, decoder_embed_weights])
-    return keras.models.Model(inputs=[encoder_input, decoder_input], outputs=dense_layer)
+    inputs = [encoder_input, decoder_input]
+    if training:
+        return keras.models.Model(inputs=inputs, outputs=dense_layer)
+    else:
+        return inputs, dense_layer
 
 
 def _get_max_suffix_repeat_times(tokens, max_len):
