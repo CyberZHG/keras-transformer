@@ -294,7 +294,7 @@ def get_model(token_num,
               embed_weights=None,
               embed_trainable=None,
               trainable=True,
-              training=False):
+              training=True):
     """Get full model without compilation.
 
     :param token_num: Number of distinct tokens.
