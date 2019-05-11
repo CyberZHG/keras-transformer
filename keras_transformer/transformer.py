@@ -1,10 +1,10 @@
-import keras
 import numpy as np
 from keras_layer_normalization import LayerNormalization
 from keras_multi_head import MultiHeadAttention
 from keras_position_wise_feed_forward import FeedForward
 from keras_pos_embd import TrigPosEmbedding
 from keras_embed_sim import EmbeddingRet, EmbeddingSim
+from .backend import keras
 
 
 __all__ = [

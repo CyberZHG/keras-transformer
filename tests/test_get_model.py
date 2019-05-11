@@ -1,8 +1,8 @@
 import os
 import tempfile
 import unittest
-import keras
 import numpy as np
+from keras_transformer.backend import keras
 from keras_transformer import get_custom_objects, get_model
 
 
