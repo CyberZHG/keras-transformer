@@ -4,23 +4,23 @@
 [![Coverage](https://coveralls.io/repos/github/CyberZHG/keras-transformer/badge.svg?branch=master)](https://coveralls.io/github/CyberZHG/keras-transformer)
 [![Version](https://img.shields.io/pypi/v/keras-transformer.svg)](https://pypi.org/project/keras-transformer/)
 
-Implementation of [transformer](https://arxiv.org/pdf/1706.03762.pdf) for seq2seq tasks.
+[Transformer](https://arxiv.org/pdf/1706.03762.pdf)实现。
 
-## Install
+## 安装
 
 ```bash
 pip install keras-transformer
 ```
 
-## Usage
+## 使用
 
-### Train
+### 训练
 
 ```python
 import numpy as np
 from keras_transformer import get_model
 
-# Build a small toy token dictionary
+# 构建一个toy词典
 tokens = 'all work and no play makes jack a dull boy'.split(' ')
 token_dict = {
     '<PAD>': 0,
@@ -31,7 +31,7 @@ for token in tokens:
     if token not in token_dict:
         token_dict[token] = len(token_dict)
 
-# Generate toy data
+# 生成toy数据
 encoder_inputs_no_padding = []
 encoder_inputs, decoder_inputs, decoder_outputs = [], [], []
 for i in range(1, len(tokens) - 1):
@@ -47,7 +47,7 @@ for i in range(1, len(tokens) - 1):
     decoder_inputs.append(decode_tokens)
     decoder_outputs.append(output_tokens)
 
-# Build the model
+# 构建模型
 model = get_model(
     token_num=len(token_dict),
     embed_dim=30,
@@ -74,7 +74,7 @@ model.fit(
 )
 ```
 
-### Predict
+### 预测
 
 ```python
 from keras_transformer import decode
