@@ -1,7 +1,7 @@
 import os
 import unittest
 import numpy as np
-from keras_transformer.backend import keras
+from keras_transformer.backend import keras, EAGER_MODE
 from keras_transformer import get_custom_objects, get_model, decode
 
 
@@ -57,8 +57,10 @@ class TestDecode(unittest.TestCase):
                 epochs=10,
                 batch_size=128,
             )
-            model.save(model_path)
-        model = keras.models.load_model(model_path, custom_objects=get_custom_objects())
+            if not EAGER_MODE:
+                model.save(model_path)
+        if not EAGER_MODE:
+            model = keras.models.load_model(model_path, custom_objects=get_custom_objects())
         decoded = decode(
             model,
             encoder_inputs_no_padding * 2,

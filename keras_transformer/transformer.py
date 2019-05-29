@@ -415,7 +415,14 @@ def _get_max_suffix_repeat_times(tokens, max_len):
     return max_repeat
 
 
-def decode(model, tokens, start_token, end_token, pad_token, max_len=10000, max_repeat=10, max_repeat_block=10):
+def decode(model,
+           tokens,
+           start_token,
+           end_token,
+           pad_token,
+           max_len=10000,
+           max_repeat=10,
+           max_repeat_block=10):
     """Decode with the given model and input tokens.
 
     :param model: The trained model.
@@ -448,7 +455,7 @@ def decode(model, tokens, start_token, end_token, pad_token, max_len=10000, max_
                 max_input_len = max(max_input_len, len(tokens[i]))
         for i in range(len(batch_inputs)):
             batch_inputs[i] += [pad_token] * (max_input_len - len(batch_inputs[i]))
-        predicts = model.predict([np.asarray(batch_inputs), np.asarray(batch_outputs)])
+        predicts = model.predict([np.array(batch_inputs), np.array(batch_outputs)])
         for i in range(len(predicts)):
             last_token = np.argmax(predicts[i][-1])
             decoder_inputs[index_map[i]].append(last_token)

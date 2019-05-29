@@ -9,7 +9,10 @@ class TestGelu(unittest.TestCase):
         try:
             results = gelu(K.constant([-30.0, -1.0, 0.0, 1.0, 30.0])).eval(session=K.get_session())
         except Exception as e:
-            results = gelu(K.constant([-30.0, -1.0, 0.0, 1.0, 30.0])).eval()
+            try:
+                results = gelu(K.constant([-30.0, -1.0, 0.0, 1.0, 30.0])).eval()
+            except Exception as e:
+                results = gelu(K.constant([-30.0, -1.0, 0.0, 1.0, 30.0])).numpy()
         self.assertEqual(0.0, results[0])
         self.assertGreater(0.0, results[1])
         self.assertLess(-1.0, results[1])
