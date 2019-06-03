@@ -100,3 +100,38 @@ class TestDecode(unittest.TestCase):
             self.assertTrue(len(decoded[i]) <= 4, decoded[i])
             for j in range(len(decoded[i])):
                 self.assertEqual(decoder_inputs[i][j], decoded[i][j], decoded)
+
+        decoded_top_5 = decode(
+            model,
+            encoder_inputs_no_padding,
+            start_token=token_dict['<START>'],
+            end_token=token_dict['<END>'],
+            pad_token=token_dict['<PAD>'],
+            max_len=4,
+            top_k=5,
+            temperature=1e-10,
+        )
+        has_diff = False
+        for i in range(len(decoded)):
+            s1 = ' '.join(map(lambda x: token_dict_rev[x], decoded[i][1:-1]))
+            s5 = ' '.join(map(lambda x: token_dict_rev[x], decoded_top_5[i][1:-1]))
+            if s1 != s5:
+                has_diff = True
+        self.assertFalse(has_diff)
+
+        decoded_top_5 = decode(
+            model,
+            encoder_inputs_no_padding,
+            start_token=token_dict['<START>'],
+            end_token=token_dict['<END>'],
+            pad_token=token_dict['<PAD>'],
+            max_len=4,
+            top_k=5,
+        )
+        has_diff = False
+        for i in range(len(decoded)):
+            s1 = ' '.join(map(lambda x: token_dict_rev[x], decoded[i][1:-1]))
+            s5 = ' '.join(map(lambda x: token_dict_rev[x], decoded_top_5[i][1:-1]))
+            if s1 != s5:
+                has_diff = True
+        self.assertTrue(has_diff)

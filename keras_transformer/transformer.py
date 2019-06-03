@@ -420,6 +420,8 @@ def decode(model,
            start_token,
            end_token,
            pad_token,
+           top_k=1,
+           temperature=1.0,
            max_len=10000,
            max_repeat=10,
            max_repeat_block=10):
@@ -430,6 +432,8 @@ def decode(model,
     :param start_token: The token that represents the start of a sentence.
     :param end_token: The token that represents the end of a sentence.
     :param pad_token: The token that represents padding.
+    :param top_k: Choose the last token from top K.
+    :param temperature: Randomness in boltzmann distribution.
     :param max_len: Maximum length of decoded list.
     :param max_repeat: Maximum number of repeating blocks.
     :param max_repeat_block: Maximum length of the repeating block.
@@ -457,7 +461,18 @@ def decode(model,
             batch_inputs[i] += [pad_token] * (max_input_len - len(batch_inputs[i]))
         predicts = model.predict([np.array(batch_inputs), np.array(batch_outputs)])
         for i in range(len(predicts)):
-            last_token = np.argmax(predicts[i][-1])
+            if top_k == 1:
+                last_token = predicts[i][-1].argmax(axis=-1)
+            else:
+                probs = [(prob, i) for i, prob in enumerate(predicts[i][-1])]
+                probs.sort(reverse=True)
+                probs = probs[:top_k]
+                indices, probs = list(map(lambda x: x[1], probs)), list(map(lambda x: x[0], probs))
+                probs = np.array(probs) / temperature
+                probs = probs - np.max(probs)
+                probs = np.exp(probs)
+                probs = probs / np.sum(probs)
+                last_token = np.random.choice(indices, p=probs)
             decoder_inputs[index_map[i]].append(last_token)
             if last_token == end_token or\
                     (max_len is not None and output_len >= max_len) or\
