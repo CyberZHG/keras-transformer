@@ -1,8 +1,9 @@
 import os
 import unittest
 import numpy as np
-from keras_transformer.backend import keras, EAGER_MODE
+from keras_transformer.backend import keras
 from keras_transformer import get_custom_objects, get_model, decode
+from keras_lr_multiplier.optimizers import AdamV2
 
 
 class TestDecode(unittest.TestCase):
@@ -27,9 +28,8 @@ class TestDecode(unittest.TestCase):
             dropout_rate=0.05,
         )
         model.compile(
-            optimizer=keras.optimizers.Adam(),
-            loss=keras.losses.sparse_categorical_crossentropy,
-            metrics={},
+            optimizer=AdamV2(),
+            loss='sparse_categorical_crossentropy',
         )
         model.summary()
         encoder_inputs_no_padding = []
@@ -57,10 +57,10 @@ class TestDecode(unittest.TestCase):
                 epochs=10,
                 batch_size=128,
             )
-            if not EAGER_MODE:
-                model.save(model_path)
-        if not EAGER_MODE:
-            model = keras.models.load_model(model_path, custom_objects=get_custom_objects())
+            model.save(model_path)
+        custom_objects = get_custom_objects()
+        custom_objects['AdamV2'] = AdamV2()
+        model = keras.models.load_model(model_path, custom_objects=custom_objects)
         decoded = decode(
             model,
             encoder_inputs_no_padding * 2,
