@@ -65,3 +65,34 @@ class TestGetModel(unittest.TestCase):
         except Exception as e:
             print(e)
         self.assertIsNotNone(model)
+
+    def test_get_adapter(self):
+        model = get_model(
+            token_num=[13, 14],
+            embed_dim=30,
+            encoder_num=3,
+            decoder_num=2,
+            head_num=3,
+            hidden_dim=120,
+            attention_activation=None,
+            feed_forward_activation='relu',
+            dropout_rate=0.05,
+            use_same_embed=False,
+            use_adapter=True,
+            adapter_units=3,
+            adapter_activation='relu',
+        )
+        model.compile(
+            optimizer=keras.optimizers.Adam(),
+            loss=keras.losses.categorical_crossentropy,
+            metrics={},
+        )
+        model_path = os.path.join(tempfile.gettempdir(), 'test_transformer_%f.h5' % np.random.random())
+        model.save(model_path)
+        model = keras.models.load_model(model_path, custom_objects=get_custom_objects())
+        model.summary()
+        try:
+            keras.utils.plot_model(model, 'transformer_adapter.png')
+        except Exception as e:
+            print(e)
+        self.assertIsNotNone(model)
