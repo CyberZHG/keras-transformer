@@ -7,4 +7,4 @@ def gelu(x):
 
     See: https://arxiv.org/pdf/1606.08415.pdf
     """
-    return 0.5 * x * (1.0 + K.tanh(math.sqrt(2.0 / math.pi) * (x + 0.044715 * K.pow(x, 3))))
+    return 0.5 * x * (1.0 + K.tanh(math.sqrt(2.0 / math.pi) * (x + 0.044715 * x * x * x)))
