@@ -1,4 +1,5 @@
 import os
+from distutils.util import strtobool
 
 __all__ = [
     'keras', 'utils', 'activations', 'applications', 'backend', 'datasets', 'engine',
@@ -9,11 +10,11 @@ __all__ = [
 TF_KERAS = False
 EAGER_MODE = False
 
-if 'TF_KERAS' in os.environ and os.environ['TF_KERAS'] != '0':
+if strtobool(os.environ.get('TF_KERAS', '0')):
     import tensorflow as tf
     from tensorflow.python import keras
     TF_KERAS = True
-    if 'TF_EAGER' in os.environ and os.environ['TF_EAGER'] != '0':
+    if strtobool(os.environ.get('TF_EAGER', '0')):
         if int(tf.version.VERSION.split('.')[0]) < 2:
             import tensorflow as tf
             tf.enable_eager_execution()
