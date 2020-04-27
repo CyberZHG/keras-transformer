@@ -184,9 +184,9 @@ print(''.join(map(lambda x: target_token_dict_inv[x], decoded[0][1:-1])))
 print(''.join(map(lambda x: target_token_dict_inv[x], decoded[1][1:-1])))
 ```
 
-### Beam Search
+### Decode
 
-In `decode`, the word with top probability is selected as the predicted token by default. You can enable beam search by setting `top_k` and `temperature`:
+In `decode`, the word with top probability is selected as the predicted token by default. You can add randomness by setting `top_k` and `temperature`:
 
 ```python
 decoded = decode(
