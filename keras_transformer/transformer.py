@@ -5,6 +5,7 @@ from keras_position_wise_feed_forward import FeedForward
 from keras_pos_embd import TrigPosEmbedding
 from keras_embed_sim import EmbeddingRet, EmbeddingSim
 from .backend import keras
+from .gelu import gelu
 
 
 __all__ = [
@@ -15,6 +16,7 @@ __all__ = [
 
 def get_custom_objects():
     return {
+        'gelu': gelu,
         'LayerNormalization': LayerNormalization,
         'MultiHeadAttention': MultiHeadAttention,
         'FeedForward': FeedForward,
@@ -28,10 +30,7 @@ def _wrap_layer(name,
                 input_layer,
                 build_func,
                 dropout_rate=0.0,
-                trainable=True,
-                use_adapter=False,
-                adapter_units=None,
-                adapter_activation='relu'):
+                trainable=True):
     """Wrap layers with residual, normalization and dropout.
 
     :param name: Prefix of names for internal layers.
@@ -39,9 +38,6 @@ def _wrap_layer(name,
     :param build_func: A callable that takes the input tensor and generates the output tensor.
     :param dropout_rate: Dropout rate.
     :param trainable: Whether the layers are trainable.
-    :param use_adapter: Whether to use feed-forward adapters before each residual connections.
-    :param adapter_units: The dimension of the first transformation in feed-forward adapter.
-    :param adapter_activation: The activation after the first transformation in feed-forward adapter.
     :return: Output layer.
     """
     build_output = build_func(input_layer)
@@ -54,14 +50,6 @@ def _wrap_layer(name,
         dropout_layer = build_output
     if isinstance(input_layer, list):
         input_layer = input_layer[0]
-    if use_adapter:
-        adapter = FeedForward(
-            units=adapter_units,
-            activation=adapter_activation,
-            kernel_initializer=keras.initializers.TruncatedNormal(mean=0.0, stddev=0.001),
-            name='%s-Adapter' % name,
-        )(dropout_layer)
-        dropout_layer = keras.layers.Add(name='%s-Adapter-Add' % name)([dropout_layer, adapter])
     add_layer = keras.layers.Add(name='%s-Add' % name)([input_layer, dropout_layer])
     normal_layer = LayerNormalization(
         trainable=trainable,
@@ -122,12 +110,9 @@ def get_encoder_component(name,
                           head_num,
                           hidden_dim,
                           attention_activation=None,
-                          feed_forward_activation='relu',
+                          feed_forward_activation=gelu,
                           dropout_rate=0.0,
-                          trainable=True,
-                          use_adapter=False,
-                          adapter_units=None,
-                          adapter_activation='relu'):
+                          trainable=True,):
     """Multi-head self-attention and feed-forward layer.
 
     :param name: Prefix of names for internal layers.
@@ -138,9 +123,6 @@ def get_encoder_component(name,
     :param feed_forward_activation: Activation for feed-forward layer.
     :param dropout_rate: Dropout rate.
     :param trainable: Whether the layers are trainable.
-    :param use_adapter: Whether to use feed-forward adapters before each residual connections.
-    :param adapter_units: The dimension of the first transformation in feed-forward adapter.
-    :param adapter_activation: The activation after the first transformation in feed-forward adapter.
     :return: Output layer.
     """
     attention_name = '%s-MultiHeadSelfAttention' % name
@@ -157,9 +139,6 @@ def get_encoder_component(name,
         ),
         dropout_rate=dropout_rate,
         trainable=trainable,
-        use_adapter=use_adapter,
-        adapter_units=adapter_units,
-        adapter_activation=adapter_activation,
     )
     feed_forward_layer = _wrap_layer(
         name=feed_forward_name,
@@ -172,9 +151,6 @@ def get_encoder_component(name,
         ),
         dropout_rate=dropout_rate,
         trainable=trainable,
-        use_adapter=use_adapter,
-        adapter_units=adapter_units,
-        adapter_activation=adapter_activation,
     )
     return feed_forward_layer
 
@@ -185,12 +161,9 @@ def get_decoder_component(name,
                           head_num,
                           hidden_dim,
                           attention_activation=None,
-                          feed_forward_activation='relu',
+                          feed_forward_activation=gelu,
                           dropout_rate=0.0,
-                          trainable=True,
-                          use_adapter=False,
-                          adapter_units=None,
-                          adapter_activation='relu'):
+                          trainable=True):
     """Multi-head self-attention, multi-head query attention and feed-forward layer.
 
     :param name: Prefix of names for internal layers.
@@ -202,9 +175,6 @@ def get_decoder_component(name,
     :param feed_forward_activation: Activation for feed-forward layer.
     :param dropout_rate: Dropout rate.
     :param trainable: Whether the layers are trainable.
-    :param use_adapter: Whether to use feed-forward adapters before each residual connections.
-    :param adapter_units: The dimension of the first transformation in feed-forward adapter.
-    :param adapter_activation: The activation after the first transformation in feed-forward adapter.
     :return: Output layer.
     """
     self_attention_name = '%s-MultiHeadSelfAttention' % name
@@ -222,9 +192,6 @@ def get_decoder_component(name,
         ),
         dropout_rate=dropout_rate,
         trainable=trainable,
-        use_adapter=use_adapter,
-        adapter_units=adapter_units,
-        adapter_activation=adapter_activation,
     )
     query_attention_layer = _wrap_layer(
         name=query_attention_name,
@@ -238,9 +205,6 @@ def get_decoder_component(name,
         ),
         dropout_rate=dropout_rate,
         trainable=trainable,
-        use_adapter=use_adapter,
-        adapter_units=adapter_units,
-        adapter_activation=adapter_activation,
     )
     feed_forward_layer = _wrap_layer(
         name=feed_forward_name,
@@ -253,9 +217,6 @@ def get_decoder_component(name,
         ),
         dropout_rate=dropout_rate,
         trainable=trainable,
-        use_adapter=use_adapter,
-        adapter_units=adapter_units,
-        adapter_activation=adapter_activation,
     )
     return feed_forward_layer
 
@@ -265,12 +226,9 @@ def get_encoders(encoder_num,
                  head_num,
                  hidden_dim,
                  attention_activation=None,
-                 feed_forward_activation='relu',
+                 feed_forward_activation=gelu,
                  dropout_rate=0.0,
-                 trainable=True,
-                 use_adapter=False,
-                 adapter_units=None,
-                 adapter_activation='relu'):
+                 trainable=True):
     """Get encoders.
 
     :param encoder_num: Number of encoder components.
@@ -281,9 +239,6 @@ def get_encoders(encoder_num,
     :param feed_forward_activation: Activation for feed-forward layer.
     :param dropout_rate: Dropout rate.
     :param trainable: Whether the layers are trainable.
-    :param use_adapter: Whether to use feed-forward adapters before each residual connections.
-    :param adapter_units: The dimension of the first transformation in feed-forward adapter.
-    :param adapter_activation: The activation after the first transformation in feed-forward adapter.
     :return: Output layer.
     """
     last_layer = input_layer
@@ -297,9 +252,6 @@ def get_encoders(encoder_num,
             feed_forward_activation=feed_forward_activation,
             dropout_rate=dropout_rate,
             trainable=trainable,
-            use_adapter=use_adapter,
-            adapter_units=adapter_units,
-            adapter_activation=adapter_activation,
         )
     return last_layer
 
@@ -310,12 +262,9 @@ def get_decoders(decoder_num,
                  head_num,
                  hidden_dim,
                  attention_activation=None,
-                 feed_forward_activation='relu',
+                 feed_forward_activation=gelu,
                  dropout_rate=0.0,
-                 trainable=True,
-                 use_adapter=False,
-                 adapter_units=None,
-                 adapter_activation='relu'):
+                 trainable=True):
     """Get decoders.
 
     :param decoder_num: Number of decoder components.
@@ -327,9 +276,6 @@ def get_decoders(decoder_num,
     :param feed_forward_activation: Activation for feed-forward layer.
     :param dropout_rate: Dropout rate.
     :param trainable: Whether the layers are trainable.
-    :param use_adapter: Whether to use feed-forward adapters before each residual connections.
-    :param adapter_units: The dimension of the first transformation in feed-forward adapter.
-    :param adapter_activation: The activation after the first transformation in feed-forward adapter.
     :return: Output layer.
     """
     last_layer = input_layer
@@ -344,9 +290,6 @@ def get_decoders(decoder_num,
             feed_forward_activation=feed_forward_activation,
             dropout_rate=dropout_rate,
             trainable=trainable,
-            use_adapter=use_adapter,
-            adapter_units=adapter_units,
-            adapter_activation=adapter_activation,
         )
     return last_layer
 
@@ -358,15 +301,12 @@ def get_model(token_num,
               head_num,
               hidden_dim,
               attention_activation=None,
-              feed_forward_activation='relu',
+              feed_forward_activation=gelu,
               dropout_rate=0.0,
               use_same_embed=True,
               embed_weights=None,
               embed_trainable=None,
-              trainable=True,
-              use_adapter=False,
-              adapter_units=None,
-              adapter_activation='relu'):
+              trainable=True):
     """Get full model without compilation.
 
     :param token_num: Number of distinct tokens.
@@ -384,9 +324,6 @@ def get_model(token_num,
     :param embed_trainable: Whether the token embedding is trainable. It will automatically set to False if the given
                             value is None when embedding weights has been provided.
     :param trainable: Whether the layers are trainable.
-    :param use_adapter: Whether to use feed-forward adapters before each residual connections.
-    :param adapter_units: The dimension of the first transformation in feed-forward adapter.
-    :param adapter_activation: The activation after the first transformation in feed-forward adapter.
     :return: Keras model.
     """
     if not isinstance(token_num, list):
@@ -449,9 +386,6 @@ def get_model(token_num,
         feed_forward_activation=feed_forward_activation,
         dropout_rate=dropout_rate,
         trainable=trainable,
-        use_adapter=use_adapter,
-        adapter_units=adapter_units,
-        adapter_activation=adapter_activation,
     )
     decoder_input = keras.layers.Input(shape=(None,), name='Decoder-Input')
     decoder_embed, decoder_embed_weights = decoder_embed_layer(decoder_input)
@@ -469,15 +403,17 @@ def get_model(token_num,
         feed_forward_activation=feed_forward_activation,
         dropout_rate=dropout_rate,
         trainable=trainable,
-        use_adapter=use_adapter,
-        adapter_units=adapter_units,
-        adapter_activation=adapter_activation,
     )
-    dense_layer = EmbeddingSim(
+    dense_layer = keras.layers.Dense(
+        units=embed_dim,
+        activation='tanh',
+        name='Decoder-Dense',
+    )(decoded_layer)
+    output_layer = EmbeddingSim(
         trainable=trainable,
-        name='Output',
-    )([decoded_layer, decoder_embed_weights])
-    return keras.models.Model(inputs=[encoder_input, decoder_input], outputs=dense_layer)
+        name='Decoder-Output',
+    )([dense_layer, decoder_embed_weights])
+    return keras.models.Model(inputs=[encoder_input, decoder_input], outputs=output_layer)
 
 
 def _get_max_suffix_repeat_times(tokens, max_len):
