@@ -404,15 +404,10 @@ def get_model(token_num,
         dropout_rate=dropout_rate,
         trainable=trainable,
     )
-    dense_layer = keras.layers.Dense(
-        units=embed_dim,
-        activation='tanh',
-        name='Decoder-Dense',
-    )(decoded_layer)
     output_layer = EmbeddingSim(
         trainable=trainable,
         name='Decoder-Output',
-    )([dense_layer, decoder_embed_weights])
+    )([decoded_layer, decoder_embed_weights])
     return keras.models.Model(inputs=[encoder_input, decoder_input], outputs=output_layer)
 
 
