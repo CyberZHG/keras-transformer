@@ -4,4 +4,4 @@ keras-pos-embd>=0.11.0
 keras-multi-head>=0.27.0
 keras-layer-normalization>=0.14.0
 keras-position-wise-feed-forward>=0.6.0
-keras-embed-sim>=0.7.0
+keras-embed-sim>=0.8.0
