@@ -6,12 +6,6 @@
 ![Downloads](https://img.shields.io/pypi/dm/keras-transformer.svg)
 ![License](https://img.shields.io/pypi/l/keras-transformer.svg)
 
-![](https://img.shields.io/badge/keras-tensorflow-blue.svg)
-![](https://img.shields.io/badge/keras-theano-blue.svg)
-![](https://img.shields.io/badge/keras-tf.keras-blue.svg)
-![](https://img.shields.io/badge/keras-tf.keras/eager-blue.svg)
-![](https://img.shields.io/badge/keras-tf.keras/2.0_beta-blue.svg)
-
  \[[中文](https://github.com/CyberZHG/keras-transformer/blob/master/README.zh-CN.md)|[English](https://github.com/CyberZHG/keras-transformer/blob/master/README.md)\]
 
 Implementation of [transformer](https://arxiv.org/pdf/1706.03762.pdf) for seq2seq tasks.
