@@ -2,6 +2,7 @@ import os
 import tempfile
 import unittest
 import numpy as np
+import tensorflow as tf
 from keras_transformer.backend import keras
 from keras_transformer import get_custom_objects, get_model
 
@@ -24,7 +25,7 @@ class TestGetModel(unittest.TestCase):
             trainable=False,
         )
         model.compile(
-            optimizer=keras.optimizers.Adam(),
+            optimizer=tf.keras.optimizers.Adam(),
             loss=keras.losses.categorical_crossentropy,
             metrics={},
         )
@@ -52,7 +53,7 @@ class TestGetModel(unittest.TestCase):
             use_same_embed=False,
         )
         model.compile(
-            optimizer=keras.optimizers.Adam(),
+            optimizer=tf.keras.optimizers.Adam(),
             loss=keras.losses.categorical_crossentropy,
             metrics={},
         )
