@@ -1,5 +1,7 @@
 import unittest
-from keras_transformer.backend import keras
+
+from tensorflow import keras
+
 from keras_transformer import get_encoders
 
 

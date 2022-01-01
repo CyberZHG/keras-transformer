@@ -1,7 +1,5 @@
-numpy
-Keras
-keras-pos-embd>=0.12.0
-keras-multi-head>=0.28.0
-keras-layer-normalization>=0.15.0
-keras-position-wise-feed-forward>=0.7.0
-keras-embed-sim>=0.9.0
+keras-pos-embd==0.13.0
+keras-multi-head==0.29.0
+keras-layer-normalization==0.16.0
+keras-position-wise-feed-forward==0.8.0
+keras-embed-sim==0.10.0

@@ -1,5 +1,7 @@
 import unittest
-from keras_transformer.backend import backend as K
+
+from tensorflow.keras import backend as K
+
 from keras_transformer import gelu
 
 

@@ -1,5 +1,6 @@
 import math
-from .backend import backend as K
+
+from tensorflow.keras import backend as K
 
 
 def gelu(x):

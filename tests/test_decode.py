@@ -1,7 +1,9 @@
 import os
 import unittest
+
 import numpy as np
-from keras_transformer.backend import keras
+from tensorflow import keras
+
 from keras_transformer import get_custom_objects, get_model, decode
 
 
